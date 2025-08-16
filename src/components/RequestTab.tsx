@@ -96,8 +96,13 @@ export function RequestTab({
     <div className="h-full flex flex-col space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium">{request.name}</span>
+        <div className="flex items-center space-x-2 flex-1">
+          <Input
+            value={request.name}
+            onChange={(e) => updateRequest({ name: e.target.value })}
+            className="h-8 text-sm font-medium bg-transparent border-none shadow-none p-1 max-w-xs"
+            placeholder="Request name"
+          />
           {response && (
             <Badge className={`${getStatusColor(response.status)} text-white`}>
               {response.status} {response.statusText}
@@ -110,6 +115,7 @@ export function RequestTab({
             size="sm"
             onClick={onSaveRequest}
             className="h-8 w-8 p-0"
+            title="Save request"
           >
             <Save className="h-4 w-4" />
           </Button>
@@ -118,6 +124,7 @@ export function RequestTab({
             size="sm"
             onClick={onCloseTab}
             className="h-8 w-8 p-0"
+            title="Close tab"
           >
             <X className="h-4 w-4" />
           </Button>
