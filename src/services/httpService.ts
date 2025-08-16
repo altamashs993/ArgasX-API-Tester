@@ -1,4 +1,5 @@
 import { ApiRequest, ApiResponse, Header } from "@/components/RequestTab";
+import { FormField } from "@/components/FormDataEditor";
 
 export class HttpService {
   static async sendRequest(request: ApiRequest): Promise<ApiResponse> {
@@ -20,8 +21,22 @@ export class HttpService {
       };
 
       // Add body for methods that support it
-      if (['POST', 'PUT', 'PATCH'].includes(request.method.toUpperCase()) && request.body) {
-        requestOptions.body = request.body;
+      if (['POST', 'PUT', 'PATCH'].includes(request.method.toUpperCase())) {
+        if (request.bodyType === 'form-data' && request.formData) {
+          const formData = new FormData();
+          request.formData
+            .filter(field => field.enabled && field.key)
+            .forEach(field => {
+              if (field.type === 'file' && field.file) {
+                formData.append(field.key, field.file);
+              } else if (field.type === 'text' && field.value) {
+                formData.append(field.key, field.value);
+              }
+            });
+          requestOptions.body = formData;
+        } else if (request.bodyType === 'raw' && request.body) {
+          requestOptions.body = request.body;
+        }
       }
 
       // Make the request
@@ -168,7 +183,9 @@ export class StorageService {
           url: typeof item.request.url === 'string' ? item.request.url : item.request.url?.raw || '',
           headers: [],
           body: '',
-          bodyType: 'raw'
+          bodyType: 'raw',
+          rawFormat: 'text',
+          formData: []
         };
         
         // Convert headers
@@ -184,8 +201,13 @@ export class StorageService {
         if (item.request.body) {
           if (item.request.body.raw) {
             request.body = item.request.body.raw;
+            request.bodyType = 'raw';
             if (item.request.body.options?.raw?.language === 'json') {
-              request.bodyType = 'json';
+              request.rawFormat = 'json';
+            } else if (item.request.body.options?.raw?.language === 'xml') {
+              request.rawFormat = 'xml';
+            } else {
+              request.rawFormat = 'text';
             }
           }
         }

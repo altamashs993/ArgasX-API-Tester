@@ -9,6 +9,7 @@ import { Play, X, Save, Copy } from "lucide-react";
 import { RequestEditor } from "./RequestEditor";
 import { ResponseViewer } from "./ResponseViewer";
 import { HeadersEditor } from "./HeadersEditor";
+import { FormField } from "./FormDataEditor";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Header {
@@ -24,7 +25,9 @@ export interface ApiRequest {
   url: string;
   headers: Header[];
   body: string;
-  bodyType: 'raw' | 'json' | 'xml';
+  bodyType: 'form-data' | 'raw';
+  rawFormat?: 'text' | 'json' | 'xml' | 'html' | 'javascript';
+  formData?: FormField[];
 }
 
 export interface ApiResponse {
@@ -185,8 +188,12 @@ export function RequestTab({
               <RequestEditor
                 body={request.body}
                 bodyType={request.bodyType}
+                rawFormat={request.rawFormat}
+                formData={request.formData}
                 onBodyChange={(body) => updateRequest({ body })}
                 onBodyTypeChange={(bodyType) => updateRequest({ bodyType })}
+                onRawFormatChange={(rawFormat) => updateRequest({ rawFormat })}
+                onFormDataChange={(formData) => updateRequest({ formData })}
               />
             </TabsContent>
             <TabsContent value="params" className="space-y-2">

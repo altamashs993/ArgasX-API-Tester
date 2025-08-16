@@ -33,7 +33,9 @@ const Index = () => {
       { key: 'Content-Type', value: 'application/json', enabled: true }
     ],
     body: '',
-    bodyType: 'json'
+    bodyType: 'raw',
+    rawFormat: 'text',
+    formData: []
   });
 
   const handleTabAdd = () => {
