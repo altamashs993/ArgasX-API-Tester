@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { RequestTabs } from "@/components/RequestTabs";
 import { Sidebar } from "@/components/Sidebar";
-import { ApiRequest, ApiResponse } from "@/components/RequestTab";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ApiRequest, ApiResponse } from "@/types";
 import { HttpService, StorageService } from "@/services/httpService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,7 +36,9 @@ const Index = () => {
     body: '',
     bodyType: 'raw',
     rawFormat: 'text',
-    formData: []
+    formData: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   });
 
   const handleTabAdd = () => {
@@ -176,29 +179,34 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="h-screen bg-background flex">
-      <Sidebar
-        savedRequests={savedRequests}
-        onRequestSelect={handleRequestSelect}
-        onNewRequest={handleTabAdd}
-        onImportCollection={handleImportCollection}
-        onExportCollection={handleExportCollection}
-      />
-      <div className="flex-1 overflow-hidden">
-        <RequestTabs
-          requests={requests}
-          responses={responses}
-          activeTab={activeTab}
-          loadingTabs={loadingTabs}
-          onTabChange={setActiveTab}
-          onTabClose={handleTabClose}
-          onTabAdd={handleTabAdd}
-          onRequestChange={handleRequestChange}
-          onSendRequest={handleSendRequest}
-          onSaveRequest={handleSaveRequest}
+    <ThemeProvider>
+      <div className="h-screen bg-background flex">
+        <Sidebar
+          savedRequests={savedRequests}
+          onRequestSelect={handleRequestSelect}
+          onNewRequest={handleTabAdd}
+          onImportCollection={handleImportCollection}
+          onExportCollection={handleExportCollection}
         />
+        <div className="flex-1 overflow-hidden">
+          <RequestTabs
+            requests={requests}
+            responses={responses}
+            activeTab={activeTab}
+            loadingTabs={loadingTabs}
+            collections={[]}
+            onTabChange={setActiveTab}
+            onTabClose={handleTabClose}
+            onTabAdd={handleTabAdd}
+            onRequestChange={handleRequestChange}
+            onSendRequest={handleSendRequest}
+            onSaveRequest={handleSaveRequest}
+            onUpdateRequest={(id) => {}}
+            onSaveAsNew={(id) => {}}
+          />
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 };
 

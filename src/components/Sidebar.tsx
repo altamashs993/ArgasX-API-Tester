@@ -13,7 +13,7 @@ import {
   Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ApiRequest } from "./RequestTab";
+import { ApiRequest } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,

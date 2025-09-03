@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2 } from "lucide-react";
-import { Header } from "./RequestTab";
+import { Header } from "@/types";
 
 interface HeadersEditorProps {
   headers: Header[];

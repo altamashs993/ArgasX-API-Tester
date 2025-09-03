@@ -2,19 +2,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { RequestTab, ApiRequest, ApiResponse } from "./RequestTab";
+import { RequestTab } from "./RequestTab";
+import { ApiRequest, ApiResponse, Collection } from "@/types";
 
 interface RequestTabsProps {
   requests: ApiRequest[];
   responses: Record<string, ApiResponse>;
   activeTab: string;
   loadingTabs: Set<string>;
+  collections: Collection[];
   onTabChange: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
   onTabAdd: () => void;
   onRequestChange: (request: ApiRequest) => void;
   onSendRequest: (requestId: string) => void;
   onSaveRequest: (requestId: string) => void;
+  onUpdateRequest: (requestId: string) => void;
+  onSaveAsNew: (requestId: string) => void;
 }
 
 export function RequestTabs({
@@ -22,12 +26,15 @@ export function RequestTabs({
   responses,
   activeTab,
   loadingTabs,
+  collections,
   onTabChange,
   onTabClose,
   onTabAdd,
   onRequestChange,
   onSendRequest,
-  onSaveRequest
+  onSaveRequest,
+  onUpdateRequest,
+  onSaveAsNew
 }: RequestTabsProps) {
   const activeRequest = requests.find(r => r.id === activeTab);
 
@@ -76,15 +83,20 @@ export function RequestTabs({
       {/* Tab Content */}
       <div className="flex-1 p-4 overflow-hidden">
         {activeRequest ? (
-          <RequestTab
-            request={activeRequest}
-            response={responses[activeRequest.id]}
-            isLoading={loadingTabs.has(activeRequest.id)}
-            onRequestChange={onRequestChange}
-            onSendRequest={() => onSendRequest(activeRequest.id)}
-            onCloseTab={() => onTabClose(activeRequest.id)}
-            onSaveRequest={() => onSaveRequest(activeRequest.id)}
-          />
+            <RequestTab
+              key={activeRequest.id}
+              request={activeRequest}
+              response={responses[activeRequest.id]}
+              isLoading={loadingTabs.has(activeRequest.id)}
+              collections={collections}
+              hasChanges={false}
+              onRequestChange={onRequestChange}
+              onSendRequest={() => onSendRequest(activeRequest.id)}
+              onCloseTab={() => onTabClose(activeRequest.id)}
+              onSaveRequest={() => onSaveRequest(activeRequest.id)}
+              onUpdateRequest={() => onUpdateRequest(activeRequest.id)}
+              onSaveAsNew={() => onSaveAsNew(activeRequest.id)}
+            />
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">

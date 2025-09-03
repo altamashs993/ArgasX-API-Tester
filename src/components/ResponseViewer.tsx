@@ -2,12 +2,15 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Copy, Download } from "lucide-react";
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { xml } from '@codemirror/lang-xml';
+import { html } from '@codemirror/lang-html';
+import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { ApiResponse } from "./RequestTab";
+import { ApiResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 interface ResponseViewerProps {
@@ -16,6 +19,7 @@ interface ResponseViewerProps {
 
 export function ResponseViewer({ response }: ResponseViewerProps) {
   const [activeTab, setActiveTab] = useState("pretty");
+  const [viewFormat, setViewFormat] = useState<'text' | 'json' | 'xml' | 'html' | 'javascript'>('json');
   const { toast } = useToast();
 
   const getStatusColor = (status: number) => {
@@ -25,24 +29,25 @@ export function ResponseViewer({ response }: ResponseViewerProps) {
     return 'bg-muted';
   };
 
-  const formatResponseData = () => {
-    try {
-      const parsed = JSON.parse(response.data);
-      return JSON.stringify(parsed, null, 2);
-    } catch {
-      return response.data;
+  const getLanguageExtension = () => {
+    switch (viewFormat) {
+      case 'json': return [json()];
+      case 'xml': return [xml()];
+      case 'html': return [html()];
+      case 'javascript': return [javascript()];
+      default: return [];
     }
   };
 
-  const getLanguageExtension = () => {
+  const getFormattedData = () => {
     try {
-      JSON.parse(response.data);
-      return [json()];
-    } catch {
-      if (response.data.includes('<?xml') || response.data.includes('<')) {
-        return [xml()];
+      if (viewFormat === 'json') {
+        const parsed = JSON.parse(response.data);
+        return JSON.stringify(parsed, null, 2);
       }
-      return [];
+      return response.data;
+    } catch {
+      return response.data;
     }
   };
 
@@ -126,10 +131,25 @@ export function ResponseViewer({ response }: ResponseViewerProps) {
         </TabsList>
         
         <TabsContent value="pretty" className="space-y-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Format:</span>
+            <Select value={viewFormat} onValueChange={(value: any) => setViewFormat(value)}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="json">JSON</SelectItem>
+                <SelectItem value="xml">XML</SelectItem>
+                <SelectItem value="html">HTML</SelectItem>
+                <SelectItem value="javascript">JavaScript</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="border rounded-lg overflow-hidden">
             <CodeMirror
-              value={formatResponseData()}
-              height="400px"
+              value={getFormattedData()}
+              height="300px"
               theme={oneDark}
               extensions={getLanguageExtension()}
               editable={false}
@@ -137,8 +157,7 @@ export function ResponseViewer({ response }: ResponseViewerProps) {
                 lineNumbers: true,
                 foldGutter: true,
                 dropCursor: false,
-                allowMultipleSelections: false,
-                highlightSelectionMatches: false,
+                allowMultipleSelections: false
               }}
             />
           </div>

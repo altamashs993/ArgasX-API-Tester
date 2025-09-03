@@ -5,48 +5,33 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Play, X, Save, Copy } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Play, X, Save, Copy, ChevronDown } from "lucide-react";
 import { RequestEditor } from "./RequestEditor";
 import { ResponseViewer } from "./ResponseViewer";
 import { HeadersEditor } from "./HeadersEditor";
 import { FormField } from "./FormDataEditor";
 import { useToast } from "@/hooks/use-toast";
+import { ApiRequest, ApiResponse, Collection } from "@/types";
 
-export interface Header {
-  key: string;
-  value: string;
-  enabled: boolean;
-}
-
-export interface ApiRequest {
-  id: string;
-  name: string;
-  method: string;
-  url: string;
-  headers: Header[];
-  body: string;
-  bodyType: 'form-data' | 'raw';
-  rawFormat?: 'text' | 'json' | 'xml' | 'html' | 'javascript';
-  formData?: FormField[];
-}
-
-export interface ApiResponse {
-  status: number;
-  statusText: string;
-  headers: Record<string, string>;
-  data: string;
-  time: number;
-  size: number;
-}
 
 interface RequestTabProps {
   request: ApiRequest;
   response?: ApiResponse;
   isLoading: boolean;
+  collections: Collection[];
+  hasChanges: boolean;
   onRequestChange: (request: ApiRequest) => void;
   onSendRequest: () => void;
   onCloseTab: () => void;
   onSaveRequest: () => void;
+  onUpdateRequest: () => void;
+  onSaveAsNew: () => void;
 }
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
@@ -73,10 +58,14 @@ export function RequestTab({
   request,
   response,
   isLoading,
+  collections,
+  hasChanges,
   onRequestChange,
   onSendRequest,
   onCloseTab,
-  onSaveRequest
+  onSaveRequest,
+  onUpdateRequest,
+  onSaveAsNew
 }: RequestTabProps) {
   const { toast } = useToast();
 
@@ -110,15 +99,39 @@ export function RequestTab({
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSaveRequest}
-            className="h-8 w-8 p-0"
-            title="Save request"
-          >
-            <Save className="h-4 w-4" />
-          </Button>
+          {hasChanges && request.collectionId ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2"
+                  title="Save options"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onUpdateRequest}>
+                  Update Request
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onSaveAsNew}>
+                  Save as New
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSaveRequest}
+              className="h-8 w-8 p-0"
+              title="Save request"
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"

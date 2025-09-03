@@ -1,4 +1,4 @@
-import { ApiRequest, ApiResponse, Header } from "@/components/RequestTab";
+import { ApiRequest, ApiResponse, Header } from "@/types";
 import { FormField } from "@/components/FormDataEditor";
 
 export class HttpService {
@@ -185,7 +185,9 @@ export class StorageService {
           body: '',
           bodyType: 'raw',
           rawFormat: 'text',
-          formData: []
+          formData: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         };
         
         // Convert headers
