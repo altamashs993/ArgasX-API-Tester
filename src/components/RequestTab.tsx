@@ -15,7 +15,7 @@ import { Play, X, Save, Copy, ChevronDown } from "lucide-react";
 import { RequestEditor } from "./RequestEditor";
 import { ResponseViewer } from "./ResponseViewer";
 import { HeadersEditor } from "./HeadersEditor";
-import { FormField } from "./FormDataEditor";
+import { SaveRequestDialog } from "./SaveRequestDialog";
 import { useToast } from "@/hooks/use-toast";
 import { ApiRequest, ApiResponse, Collection } from "@/types";
 
@@ -29,9 +29,9 @@ interface RequestTabProps {
   onRequestChange: (request: ApiRequest) => void;
   onSendRequest: () => void;
   onCloseTab: () => void;
-  onSaveRequest: () => void;
+  onSaveRequest: (name: string, collectionId: string) => void;
   onUpdateRequest: () => void;
-  onSaveAsNew: () => void;
+  onSaveAsNew: (name: string, collectionId: string) => void;
 }
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
@@ -68,6 +68,7 @@ export function RequestTab({
   onSaveAsNew
 }: RequestTabProps) {
   const { toast } = useToast();
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const updateRequest = (updates: Partial<ApiRequest>) => {
     onRequestChange({ ...request, ...updates });
@@ -116,7 +117,7 @@ export function RequestTab({
                 <DropdownMenuItem onClick={onUpdateRequest}>
                   Update Request
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onSaveAsNew}>
+                <DropdownMenuItem onClick={() => setShowSaveDialog(true)}>
                   Save as New
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -125,7 +126,7 @@ export function RequestTab({
             <Button
               variant="ghost"
               size="sm"
-              onClick={onSaveRequest}
+              onClick={() => setShowSaveDialog(true)}
               className="h-8 w-8 p-0"
               title="Save request"
             >
@@ -231,6 +232,27 @@ export function RequestTab({
           <ResponseViewer response={response} />
         </Card>
       )}
+
+      {/* Save Dialog */}
+      <SaveRequestDialog
+        open={showSaveDialog}
+        onOpenChange={setShowSaveDialog}
+        request={request}
+        collections={collections}
+        onSaveRequest={(name, collectionId) => {
+          if (hasChanges && request.collectionId) {
+            onSaveAsNew(name, collectionId);
+          } else {
+            onSaveRequest(name, collectionId);
+          }
+          setShowSaveDialog(false);
+        }}
+        onCreateCollection={() => {
+          // This would need to be handled by the parent
+          // For now, we'll just close the dialog
+          setShowSaveDialog(false);
+        }}
+      />
     </div>
   );
 }

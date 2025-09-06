@@ -16,9 +16,9 @@ interface RequestTabsProps {
   onTabAdd: () => void;
   onRequestChange: (request: ApiRequest) => void;
   onSendRequest: (requestId: string) => void;
-  onSaveRequest: (requestId: string) => void;
+  onSaveRequest: (requestId: string, name: string, collectionId: string) => void;
   onUpdateRequest: (requestId: string) => void;
-  onSaveAsNew: (requestId: string) => void;
+  onSaveAsNew: (requestId: string, name: string, collectionId: string) => void;
 }
 
 export function RequestTabs({
@@ -93,9 +93,9 @@ export function RequestTabs({
               onRequestChange={onRequestChange}
               onSendRequest={() => onSendRequest(activeRequest.id)}
               onCloseTab={() => onTabClose(activeRequest.id)}
-              onSaveRequest={() => onSaveRequest(activeRequest.id)}
+              onSaveRequest={(name, collectionId) => onSaveRequest(activeRequest.id, name, collectionId)}
               onUpdateRequest={() => onUpdateRequest(activeRequest.id)}
-              onSaveAsNew={() => onSaveAsNew(activeRequest.id)}
+              onSaveAsNew={(name, collectionId) => onSaveAsNew(activeRequest.id, name, collectionId)}
             />
         ) : (
           <div className="flex items-center justify-center h-full">

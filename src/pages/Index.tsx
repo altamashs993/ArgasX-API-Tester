@@ -2,28 +2,25 @@ import { useState, useEffect } from "react";
 import { RequestTabs } from "@/components/RequestTabs";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { ApiRequest, ApiResponse } from "@/types";
-import { HttpService, StorageService } from "@/services/httpService";
+import { ApiRequest, ApiResponse, Collection, RequestHistory } from "@/types";
+import { HttpService } from "@/services/httpService";
+import { StorageService } from "@/services/storageService";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [requests, setRequests] = useState<ApiRequest[]>([]);
-  const [savedRequests, setSavedRequests] = useState<ApiRequest[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [responses, setResponses] = useState<Record<string, ApiResponse>>({});
+  const [history, setHistory] = useState<RequestHistory[]>([]);
   const [activeTab, setActiveTab] = useState<string>("");
   const [loadingTabs, setLoadingTabs] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
-  // Load saved requests on mount
+  // Load data on mount
   useEffect(() => {
-    const saved = StorageService.loadRequests();
-    setSavedRequests(saved);
+    setCollections(StorageService.getCollections());
+    setHistory(StorageService.getHistory());
   }, []);
-
-  // Save requests whenever they change
-  useEffect(() => {
-    StorageService.saveRequests(savedRequests);
-  }, [savedRequests]);
 
   const createNewRequest = (): ApiRequest => ({
     id: crypto.randomUUID(),
@@ -81,6 +78,15 @@ const Index = () => {
       const response = await HttpService.sendRequest(request);
       setResponses(prev => ({ ...prev, [requestId]: response }));
       
+      // Add to history
+      StorageService.addToHistory({
+        requestId: request.id,
+        method: request.method,
+        url: request.url,
+        status: response.status
+      });
+      setHistory(StorageService.getHistory());
+      
       toast({
         title: "Request completed",
         description: `${response.status} ${response.statusText} • ${response.time}ms`
@@ -100,27 +106,45 @@ const Index = () => {
     }
   };
 
-  const handleSaveRequest = (requestId: string) => {
+  const handleSaveRequest = (requestId: string, name: string, collectionId: string) => {
     const request = requests.find(r => r.id === requestId);
     if (!request) return;
 
-    const existingIndex = savedRequests.findIndex(r => r.id === requestId);
+    const updatedRequest = { ...request, name, collectionId };
+    const savedRequest = StorageService.saveRequest(updatedRequest);
     
-    if (existingIndex >= 0) {
-      setSavedRequests(prev => 
-        prev.map(r => r.id === requestId ? request : r)
-      );
-      toast({
-        title: "Request updated",
-        description: `"${request.name}" has been updated`
-      });
-    } else {
-      setSavedRequests(prev => [...prev, request]);
-      toast({
-        title: "Request saved",
-        description: `"${request.name}" has been saved to your collection`
-      });
-    }
+    // Update the current tab with the saved request
+    setRequests(prev => prev.map(r => r.id === requestId ? savedRequest : r));
+    
+    toast({
+      title: "Request saved",
+      description: `"${name}" has been saved to collection`
+    });
+  };
+
+  const handleUpdateRequest = (requestId: string) => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request) return;
+
+    StorageService.updateRequest(request.id, request);
+    toast({
+      title: "Request updated",
+      description: `"${request.name}" has been updated`
+    });
+  };
+
+  const handleSaveAsNew = (requestId: string, name: string, collectionId: string) => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request) return;
+
+    const newRequest = { ...request, name, collectionId };
+    delete (newRequest as any).id;
+    const savedRequest = StorageService.saveRequest(newRequest);
+    
+    toast({
+      title: "Request saved as new",
+      description: `"${name}" has been saved as a new request`
+    });
   };
 
   const handleRequestSelect = (savedRequest: ApiRequest) => {
@@ -136,16 +160,35 @@ const Index = () => {
     setActiveTab(savedRequest.id);
   };
 
+  const handleCreateCollection = (name: string, description: string) => {
+    const collection = StorageService.createCollection({ name, description });
+    setCollections(prev => [...prev, collection]);
+    return collection;
+  };
+
   const handleImportCollection = async () => {
     try {
-      const imported = await StorageService.importRequests();
-      if (imported) {
-        setSavedRequests(prev => [...prev, ...imported]);
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const { collections: importedCollections, requests: importedRequests } = StorageService.importPostmanCollection(data);
+        
+        setCollections(prev => [...prev, ...importedCollections]);
+        
         toast({
           title: "Collection imported",
-          description: `${imported.length} requests imported successfully`
+          description: `${importedRequests.length} requests imported successfully`
         });
-      }
+      };
+      
+      input.click();
     } catch (error) {
       toast({
         title: "Import failed",
@@ -155,9 +198,19 @@ const Index = () => {
     }
   };
 
-  const handleExportCollection = () => {
+  const handleExportCollection = (collectionId?: string) => {
     try {
-      StorageService.exportRequests(savedRequests);
+      const data = StorageService.exportCollection(collectionId);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = collectionId ? 
+        `${collections.find(c => c.id === collectionId)?.name || 'collection'}.json` : 
+        'argasx-collections.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      
       toast({
         title: "Collection exported",
         description: "Your collection has been downloaded"
@@ -182,11 +235,15 @@ const Index = () => {
     <ThemeProvider>
       <div className="h-screen bg-background flex">
         <Sidebar
-          savedRequests={savedRequests}
+          collections={collections}
+          history={history}
           onRequestSelect={handleRequestSelect}
           onNewRequest={handleTabAdd}
+          onCreateCollection={handleCreateCollection}
           onImportCollection={handleImportCollection}
           onExportCollection={handleExportCollection}
+          onCollectionsChange={setCollections}
+          onHistoryChange={setHistory}
         />
         <div className="flex-1 overflow-hidden">
           <RequestTabs
@@ -194,15 +251,15 @@ const Index = () => {
             responses={responses}
             activeTab={activeTab}
             loadingTabs={loadingTabs}
-            collections={[]}
+            collections={collections}
             onTabChange={setActiveTab}
             onTabClose={handleTabClose}
             onTabAdd={handleTabAdd}
             onRequestChange={handleRequestChange}
             onSendRequest={handleSendRequest}
             onSaveRequest={handleSaveRequest}
-            onUpdateRequest={(id) => {}}
-            onSaveAsNew={(id) => {}}
+            onUpdateRequest={handleUpdateRequest}
+            onSaveAsNew={handleSaveAsNew}
           />
         </div>
       </div>
