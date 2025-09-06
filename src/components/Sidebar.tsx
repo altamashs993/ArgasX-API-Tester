@@ -20,7 +20,7 @@ import { CollectionsPanel } from "./CollectionsPanel";
 import { HistoryPanel } from "./HistoryPanel";
 import { CreateCollectionDialog } from "./CreateCollectionDialog";
 import { SettingsDialog } from "./SettingsDialog";
-import { StorageService } from "@/services/storageService";
+import { StorageService } from "../services/storageService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
