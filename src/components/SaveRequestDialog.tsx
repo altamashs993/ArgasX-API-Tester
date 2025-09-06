@@ -37,7 +37,7 @@ export function SaveRequestDialog({
   onSaveRequest,
   onCreateCollection
 }: SaveRequestDialogProps) {
-  const [name, setName] = useState(request.name || '');
+  const [name, setName] = useState(request?.name || '');
   const [selectedCollection, setSelectedCollection] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -49,17 +49,17 @@ export function SaveRequestDialog({
   };
 
   const handleCancel = () => {
-    setName(request.name || '');
+    setName(request?.name || '');
     setSelectedCollection('');
     onOpenChange(false);
   };
 
   React.useEffect(() => {
     if (open) {
-      setName(request.name || '');
+      setName(request?.name || '');
       setSelectedCollection('');
     }
-  }, [open, request.name]);
+  }, [open, request?.name]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
