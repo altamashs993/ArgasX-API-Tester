@@ -12,7 +12,8 @@ import {
   Import,
   Download,
   Settings,
-  History
+  History,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ApiRequest, Collection, RequestHistory } from "@/types";
@@ -39,6 +40,7 @@ interface SidebarProps {
   onExportCollection: (collectionId?: string) => void;
   onCollectionsChange: (collections: Collection[]) => void;
   onHistoryChange: (history: RequestHistory[]) => void;
+  onClose?: () => void;
 }
 
 export function Sidebar({
@@ -50,7 +52,8 @@ export function Sidebar({
   onImportCollection,
   onExportCollection,
   onCollectionsChange,
-  onHistoryChange
+  onHistoryChange,
+  onClose
 }: SidebarProps) {
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -61,12 +64,22 @@ export function Sidebar({
   };
 
   return (
-    <div className="w-80 bg-card border-r flex flex-col h-full">
+    <div className="w-80 lg:w-80 w-full bg-card border-r flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">ARGASX API TESTER</h2>
+      <div className="p-3 lg:p-4 border-b">
+        <div className="flex items-center justify-between mb-3 lg:mb-4">
+          <h2 className="text-base lg:text-lg font-semibold">ARGASX API TESTER</h2>
           <div className="flex items-center space-x-1">
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 lg:hidden"
+                onClick={onClose}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -95,7 +108,7 @@ export function Sidebar({
           </div>
         </div>
 
-        <Button onClick={onNewRequest} className="w-full">
+        <Button onClick={onNewRequest} className="w-full h-10 lg:h-10 text-sm">
           <Plus className="h-4 w-4 mr-2" />
           New Request
         </Button>
@@ -104,9 +117,9 @@ export function Sidebar({
       {/* Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs defaultValue="collections" className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mx-4 mt-4">
-            <TabsTrigger value="collections">Collections</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mx-3 lg:mx-4 mt-3 lg:mt-4">
+            <TabsTrigger value="collections" className="text-xs lg:text-sm">Collections</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs lg:text-sm">History</TabsTrigger>
           </TabsList>
           
           <TabsContent value="collections" className="flex-1 overflow-hidden">

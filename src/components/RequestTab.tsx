@@ -83,23 +83,23 @@ export function RequestTab({
   };
 
   return (
-    <div className="h-full flex flex-col space-y-4">
+    <div className="h-full flex flex-col space-y-3 lg:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 flex-1">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center space-x-2 flex-1 min-w-0">
           <Input
             value={request.name}
             onChange={(e) => updateRequest({ name: e.target.value })}
-            className="h-8 text-sm font-medium bg-transparent border-none shadow-none p-1 max-w-xs"
+            className="h-8 text-sm font-medium bg-transparent border-none shadow-none p-1 max-w-xs min-w-0"
             placeholder="Request name"
           />
           {response && (
-            <Badge className={`${getStatusColor(response.status)} text-white`}>
+            <Badge className={`${getStatusColor(response.status)} text-white text-xs flex-shrink-0`}>
               {response.status} {response.statusText}
             </Badge>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 lg:space-x-2 flex-shrink-0">
           {hasChanges && request.collectionId ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -146,15 +146,15 @@ export function RequestTab({
       </div>
 
       {/* Request Builder */}
-      <Card className="p-4">
-        <div className="space-y-4">
+      <Card className="p-3 lg:p-4">
+        <div className="space-y-3 lg:space-y-4">
           {/* Method and URL */}
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
             <Select
               value={request.method}
               onValueChange={(method) => updateRequest({ method })}
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -166,46 +166,49 @@ export function RequestTab({
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex-1 flex space-x-2">
+            <div className="flex-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <Input
                 placeholder="Enter request URL"
                 value={request.url}
                 onChange={(e) => updateRequest({ url: e.target.value })}
-                className="flex-1"
+                className="flex-1 min-w-0"
               />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={copyUrl}
-                className="h-10 w-10 p-0"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={onSendRequest}
-                disabled={isLoading || !request.url}
-                className="px-6"
-              >
-                <Play className="h-4 w-4 mr-2" />
-                {isLoading ? 'Sending...' : 'Send'}
-              </Button>
+              <div className="flex space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={copyUrl}
+                  className="h-10 w-10 p-0 flex-shrink-0"
+                  title="Copy URL"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={onSendRequest}
+                  disabled={isLoading || !request.url}
+                  className="px-4 lg:px-6 flex-shrink-0"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  {isLoading ? 'Sending...' : 'Send'}
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Request Configuration */}
           <Tabs defaultValue="headers" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="headers">Headers</TabsTrigger>
-              <TabsTrigger value="body">Body</TabsTrigger>
-              <TabsTrigger value="params">Params</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 h-9 lg:h-10">
+              <TabsTrigger value="headers" className="text-xs lg:text-sm">Headers</TabsTrigger>
+              <TabsTrigger value="body" className="text-xs lg:text-sm">Body</TabsTrigger>
+              <TabsTrigger value="params" className="text-xs lg:text-sm">Params</TabsTrigger>
             </TabsList>
-            <TabsContent value="headers" className="space-y-2">
+            <TabsContent value="headers" className="space-y-2 mt-3 lg:mt-4">
               <HeadersEditor
                 headers={request.headers}
                 onChange={(headers) => updateRequest({ headers })}
               />
             </TabsContent>
-            <TabsContent value="body" className="space-y-2">
+            <TabsContent value="body" className="space-y-2 mt-3 lg:mt-4">
               <RequestEditor
                 body={request.body}
                 bodyType={request.bodyType}
@@ -217,8 +220,8 @@ export function RequestTab({
                 onFormDataChange={(formData) => updateRequest({ formData })}
               />
             </TabsContent>
-            <TabsContent value="params" className="space-y-2">
-              <div className="text-sm text-muted-foreground p-4 text-center">
+            <TabsContent value="params" className="space-y-2 mt-3 lg:mt-4">
+              <div className="text-xs lg:text-sm text-muted-foreground p-4 text-center">
                 URL parameters coming soon...
               </div>
             </TabsContent>
@@ -228,7 +231,7 @@ export function RequestTab({
 
       {/* Response */}
       {response && (
-        <Card className="flex-1 p-4">
+        <Card className="flex-1 p-3 lg:p-4 min-h-0 overflow-hidden">
           <ResponseViewer response={response} />
         </Card>
       )}

@@ -231,21 +231,45 @@ const Index = () => {
     }
   }, []);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <ThemeProvider>
-      <div className="h-screen bg-background flex">
-        <Sidebar
-          collections={collections}
-          history={history}
-          onRequestSelect={handleRequestSelect}
-          onNewRequest={handleTabAdd}
-          onCreateCollection={handleCreateCollection}
-          onImportCollection={handleImportCollection}
-          onExportCollection={handleExportCollection}
-          onCollectionsChange={setCollections}
-          onHistoryChange={setHistory}
-        />
-        <div className="flex-1 overflow-hidden">
+      <div className="h-screen bg-background flex relative">
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
+        {/* Sidebar */}
+        <div className={`${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 fixed lg:relative z-50 lg:z-auto transition-transform duration-300 ease-in-out`}>
+          <Sidebar
+            collections={collections}
+            history={history}
+            onRequestSelect={(request) => {
+              handleRequestSelect(request);
+              setSidebarOpen(false); // Close sidebar on mobile after selection
+            }}
+            onNewRequest={() => {
+              handleTabAdd();
+              setSidebarOpen(false); // Close sidebar on mobile after creating new request
+            }}
+            onCreateCollection={handleCreateCollection}
+            onImportCollection={handleImportCollection}
+            onExportCollection={handleExportCollection}
+            onCollectionsChange={setCollections}
+            onHistoryChange={setHistory}
+            onClose={() => setSidebarOpen(false)}
+          />
+        </div>
+        
+        {/* Main content */}
+        <div className="flex-1 overflow-hidden min-w-0">
           <RequestTabs
             requests={requests}
             responses={responses}
@@ -260,6 +284,8 @@ const Index = () => {
             onSaveRequest={handleSaveRequest}
             onUpdateRequest={handleUpdateRequest}
             onSaveAsNew={handleSaveAsNew}
+            onOpenSidebar={() => setSidebarOpen(true)}
+            sidebarOpen={sidebarOpen}
           />
         </div>
       </div>

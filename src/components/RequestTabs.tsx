@@ -19,6 +19,8 @@ interface RequestTabsProps {
   onSaveRequest: (requestId: string, name: string, collectionId: string) => void;
   onUpdateRequest: (requestId: string) => void;
   onSaveAsNew: (requestId: string, name: string, collectionId: string) => void;
+  onOpenSidebar: () => void;
+  sidebarOpen: boolean;
 }
 
 export function RequestTabs({
@@ -34,7 +36,9 @@ export function RequestTabs({
   onSendRequest,
   onSaveRequest,
   onUpdateRequest,
-  onSaveAsNew
+  onSaveAsNew,
+  onOpenSidebar,
+  sidebarOpen
 }: RequestTabsProps) {
   const activeRequest = requests.find(r => r.id === activeTab);
 
@@ -42,18 +46,30 @@ export function RequestTabs({
     <div className="flex flex-col h-full">
       {/* Tab Headers */}
       <div className="flex items-center border-b bg-card">
-        <div className="flex items-center overflow-x-auto">
+        {/* Mobile menu button */}
+        <Button
+          onClick={onOpenSidebar}
+          size="sm"
+          variant="ghost"
+          className="h-8 w-8 p-0 ml-2 lg:hidden"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </Button>
+        
+        <div className="flex items-center overflow-x-auto scrollbar-hide">
           {requests.map((request) => (
             <button
               key={request.id}
               onClick={() => onTabChange(request.id)}
               className={cn(
-                "flex items-center space-x-2 px-4 py-2 text-sm border-r hover:bg-card-hover transition-colors",
+                "flex items-center space-x-2 px-3 lg:px-4 py-2 text-xs lg:text-sm border-r hover:bg-card-hover transition-colors whitespace-nowrap min-w-0 flex-shrink-0",
                 activeTab === request.id ? "bg-background" : "bg-card"
               )}
             >
               <div className={cn(
-                "w-2 h-2 rounded-full",
+                "w-2 h-2 rounded-full flex-shrink-0",
                 request.method === 'GET' && "bg-method-get",
                 request.method === 'POST' && "bg-method-post",
                 request.method === 'PUT' && "bg-method-put",
@@ -61,9 +77,9 @@ export function RequestTabs({
                 request.method === 'PATCH' && "bg-method-patch",
                 !['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method) && "bg-muted"
               )} />
-              <span className="max-w-32 truncate">{request.name}</span>
+              <span className="max-w-20 lg:max-w-32 truncate">{request.name}</span>
               {responses[request.id] && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground hidden sm:inline">
                   {responses[request.id].status}
                 </span>
               )}
@@ -74,14 +90,14 @@ export function RequestTabs({
           onClick={onTabAdd}
           size="sm"
           variant="ghost"
-          className="h-8 w-8 p-0 ml-2"
+          className="h-8 w-8 p-0 ml-2 flex-shrink-0"
         >
           <Plus className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 p-4 overflow-hidden">
+      <div className="flex-1 p-2 lg:p-4 overflow-hidden">
         {activeRequest ? (
             <RequestTab
               key={activeRequest.id}
@@ -99,12 +115,12 @@ export function RequestTabs({
             />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center">
+            <div className="text-center p-4">
               <h3 className="text-lg font-medium mb-2">No requests open</h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-4 text-sm lg:text-base">
                 Create a new request to get started
               </p>
-              <Button onClick={onTabAdd}>
+              <Button onClick={onTabAdd} className="h-10 px-4">
                 <Plus className="h-4 w-4 mr-2" />
                 New Request
               </Button>
