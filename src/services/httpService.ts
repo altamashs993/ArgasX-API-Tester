@@ -2,10 +2,25 @@ import { ApiRequest, ApiResponse, Header } from "@/types";
 import { FormField } from "@/components/FormDataEditor";
 
 export class HttpService {
+  // Ensure URL has proper protocol
+  static normalizeUrl(url: string): string {
+    let normalizedUrl = url.trim();
+    
+    // Add http:// if no protocol specified
+    if (!normalizedUrl.match(/^https?:\/\//i)) {
+      normalizedUrl = 'http://' + normalizedUrl;
+    }
+    
+    return normalizedUrl;
+  }
+
   static async sendRequest(request: ApiRequest): Promise<ApiResponse> {
     const startTime = Date.now();
     
     try {
+      // Normalize URL to ensure it has proper protocol
+      const url = this.normalizeUrl(request.url);
+      
       // Prepare headers
       const headers: Record<string, string> = {};
       request.headers
@@ -18,6 +33,7 @@ export class HttpService {
       const requestOptions: RequestInit = {
         method: request.method,
         headers,
+        mode: 'cors',
       };
 
       // Add body for methods that support it
@@ -40,7 +56,7 @@ export class HttpService {
       }
 
       // Make the request
-      const response = await fetch(request.url, requestOptions);
+      const response = await fetch(url, requestOptions);
       
       const endTime = Date.now();
       const responseText = await response.text();
@@ -61,7 +77,18 @@ export class HttpService {
       };
     } catch (error) {
       const endTime = Date.now();
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      let errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Provide more helpful error messages for common issues
+      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+        errorMessage = `Network Error: Unable to reach the server. This could be due to:
+1. CORS: The target server doesn't allow requests from this origin. Configure the server to send 'Access-Control-Allow-Origin: *' header.
+2. Mixed Content: You're on HTTPS but requesting HTTP. Try using a local/same-network device.
+3. Server Unreachable: The server may be down or the URL is incorrect.
+4. Firewall: Network firewall may be blocking the request.
+
+Tip: For local network devices, ensure they support CORS or use a CORS proxy.`;
+      }
       
       return {
         status: 0,
