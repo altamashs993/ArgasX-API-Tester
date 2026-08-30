@@ -1,28 +1,28 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Play, X, Save, Copy, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Play, Save, ChevronDown, Loader2 } from "lucide-react";
 import { RequestEditor } from "./RequestEditor";
 import { ResponseViewer } from "./ResponseViewer";
 import { HeadersEditor } from "./HeadersEditor";
 import { SaveRequestDialog } from "./SaveRequestDialog";
+import { ScriptEditor } from "./ScriptEditor";
+import { TestResultsPanel } from "./TestResultsPanel";
+import { QueryParamsEditor } from "./QueryParamsEditor";
 import { useToast } from "@/hooks/use-toast";
-import { ApiRequest, ApiResponse, Collection } from "@/types";
-
+import { ApiRequest, ApiResponse, Collection, TestResult } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface RequestTabProps {
   request: ApiRequest;
   response?: ApiResponse;
+  testResults?: TestResult[];
+  scriptLogs?: string[];
+  scriptError?: string;
   isLoading: boolean;
   collections: Collection[];
   hasChanges: boolean;
@@ -32,229 +32,204 @@ interface RequestTabProps {
   onSaveRequest: (name: string, collectionId: string) => void;
   onUpdateRequest: () => void;
   onSaveAsNew: (name: string, collectionId: string) => void;
+  onCreateCollection: (collection: Omit<Collection, "id" | "createdAt" | "updatedAt">) => Collection;
 }
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
-const getMethodColor = (method: string) => {
-  switch (method.toUpperCase()) {
-    case 'GET': return 'bg-method-get';
-    case 'POST': return 'bg-method-post';
-    case 'PUT': return 'bg-method-put';
-    case 'DELETE': return 'bg-method-delete';
-    case 'PATCH': return 'bg-method-patch';
-    default: return 'bg-muted';
-  }
-};
+function getMethodClass(method: string) {
+  const m = method.toUpperCase();
+  if (m === 'GET') return 'method-get';
+  if (m === 'POST') return 'method-post';
+  if (m === 'PUT') return 'method-put';
+  if (m === 'DELETE') return 'method-delete';
+  if (m === 'PATCH') return 'method-patch';
+  if (m === 'HEAD') return 'method-head';
+  if (m === 'OPTIONS') return 'method-options';
+  return 'text-muted-foreground';
+}
 
-const getStatusColor = (status: number) => {
-  if (status >= 200 && status < 300) return 'bg-status-success';
-  if (status >= 400 && status < 500) return 'bg-status-client-error';
-  if (status >= 500) return 'bg-status-server-error';
-  return 'bg-muted';
-};
+function getStatusColor(status: number) {
+  if (status >= 200 && status < 300) return 'bg-green-600';
+  if (status >= 400 && status < 500) return 'bg-yellow-600';
+  if (status >= 500) return 'bg-red-600';
+  return 'bg-zinc-600';
+}
 
 export function RequestTab({
-  request,
-  response,
-  isLoading,
-  collections,
-  hasChanges,
-  onRequestChange,
-  onSendRequest,
-  onCloseTab,
-  onSaveRequest,
-  onUpdateRequest,
-  onSaveAsNew
+  request, response, testResults, scriptLogs, scriptError,
+  isLoading, collections, hasChanges,
+  onRequestChange, onSendRequest, onCloseTab,
+  onSaveRequest, onUpdateRequest, onSaveAsNew, onCreateCollection
 }: RequestTabProps) {
   const { toast } = useToast();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [activeSection, setActiveSection] = useState<'params' | 'headers' | 'body' | 'scripts' | 'tests'>('headers');
 
   const updateRequest = (updates: Partial<ApiRequest>) => {
     onRequestChange({ ...request, ...updates });
   };
 
-  const copyUrl = () => {
-    navigator.clipboard.writeText(request.url);
-    toast({
-      title: "URL copied to clipboard",
-      description: request.url
-    });
-  };
+  const hasTestResults = (testResults?.length ?? 0) > 0 || (scriptLogs?.length ?? 0) > 0 || scriptError;
 
   return (
-    <div className="h-full flex flex-col space-y-3 lg:space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center space-x-2 flex-1 min-w-0">
-          <Input
-            value={request.name}
-            onChange={(e) => updateRequest({ name: e.target.value })}
-            className="h-8 text-sm font-medium bg-transparent border-none shadow-none p-1 max-w-xs min-w-0"
-            placeholder="Request name"
-          />
+    <div className="h-full flex flex-col gap-3 overflow-hidden">
+      {/* URL Bar */}
+      <div className="glass-card rounded-lg p-3 flex items-center gap-2">
+        {/* Method selector */}
+        <Select value={request.method} onValueChange={(method) => updateRequest({ method })}>
+          <SelectTrigger className={cn("w-28 h-9 text-sm font-bold border-zinc-700 bg-zinc-900", getMethodClass(request.method))}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-zinc-900 border-zinc-700">
+            {HTTP_METHODS.map((m) => (
+              <SelectItem key={m} value={m} className={cn("text-sm font-bold", getMethodClass(m))}>{m}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* URL input */}
+        <Input
+          placeholder="Enter URL or paste text"
+          value={request.url}
+          onChange={(e) => updateRequest({ url: e.target.value })}
+          onKeyDown={(e) => e.key === 'Enter' && request.url && onSendRequest()}
+          className="flex-1 h-9 font-mono text-sm bg-zinc-900 border-zinc-700 focus:border-primary/50"
+        />
+
+        {/* Send button */}
+        <Button
+          onClick={onSendRequest}
+          disabled={isLoading || !request.url}
+          className="btn-send h-9 px-5 flex-shrink-0"
+        >
+          {isLoading
+            ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Sending</>
+            : <><Play className="h-3.5 w-3.5 mr-2" />Send</>
+          }
+        </Button>
+
+        {/* Save */}
+        {hasChanges && request.collectionId ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-9 px-2 border border-zinc-700">
+                <Save className="h-3.5 w-3.5 mr-1" /><ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-700">
+              <DropdownMenuItem onClick={onUpdateRequest}>Update Request</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowSaveDialog(true)}>Save as New</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => setShowSaveDialog(true)} className="h-9 w-9 p-0 border border-zinc-700">
+            <Save className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+
+      {/* Request config tabs */}
+      <div className="glass-card rounded-lg overflow-hidden flex-shrink-0">
+        <div className="flex items-center border-b border-white/5">
+          {(['params', 'headers', 'body', 'scripts', 'tests'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveSection(tab)}
+              className={cn(
+                "px-4 py-2.5 text-xs font-medium capitalize transition-colors relative",
+                activeSection === tab
+                  ? "text-foreground tab-active-indicator"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab}
+              {tab === 'tests' && hasTestResults && (
+                <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+              )}
+            </button>
+          ))}
           {response && (
-            <Badge className={`${getStatusColor(response.status)} text-white text-xs flex-shrink-0`}>
-              {response.status} {response.statusText}
-            </Badge>
+            <div className="ml-auto flex items-center gap-2 pr-3">
+              <Badge className={cn(getStatusColor(response.status), "text-white text-xs")}>
+                {response.status} {response.statusText}
+              </Badge>
+              <span className="text-xs text-muted-foreground">{response.time}ms</span>
+              <span className="text-xs text-muted-foreground">
+                {response.size < 1024 ? `${response.size}B` : `${(response.size / 1024).toFixed(1)}KB`}
+              </span>
+            </div>
           )}
         </div>
-        <div className="flex items-center space-x-1 lg:space-x-2 flex-shrink-0">
-          {hasChanges && request.collectionId ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2"
-                  title="Save options"
-                >
-                  <Save className="h-4 w-4 mr-1" />
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onUpdateRequest}>
-                  Update Request
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowSaveDialog(true)}>
-                  Save as New
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSaveDialog(true)}
-              className="h-8 w-8 p-0"
-              title="Save request"
-            >
-              <Save className="h-4 w-4" />
-            </Button>
+        <div className="p-3">
+          {activeSection === 'params' && (
+            <QueryParamsEditor
+              params={request.queryParams ?? []}
+              onChange={(queryParams) => updateRequest({ queryParams })}
+            />
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCloseTab}
-            className="h-8 w-8 p-0"
-            title="Close tab"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          {activeSection === 'headers' && (
+            <HeadersEditor headers={request.headers} onChange={(headers) => updateRequest({ headers })} />
+          )}
+          {activeSection === 'body' && (
+            <RequestEditor
+              body={request.body}
+              bodyType={request.bodyType}
+              rawFormat={request.rawFormat}
+              formData={request.formData}
+              onBodyChange={(body) => updateRequest({ body })}
+              onBodyTypeChange={(bodyType) => updateRequest({ bodyType })}
+              onRawFormatChange={(rawFormat) => updateRequest({ rawFormat })}
+              onFormDataChange={(formData) => updateRequest({ formData })}
+            />
+          )}
+          {activeSection === 'scripts' && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Pre-request Script</p>
+                <ScriptEditor
+                  type="pre-request"
+                  value={request.preRequestScript ?? ''}
+                  onChange={(v) => updateRequest({ preRequestScript: v })}
+                />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Tests Script</p>
+                <ScriptEditor
+                  type="test"
+                  value={request.testScript ?? ''}
+                  onChange={(v) => updateRequest({ testScript: v })}
+                />
+              </div>
+            </div>
+          )}
+          {activeSection === 'tests' && (
+            <TestResultsPanel
+              testResults={testResults ?? []}
+              logs={scriptLogs ?? []}
+              scriptError={scriptError}
+            />
+          )}
         </div>
       </div>
 
-      {/* Request Builder */}
-      <Card className="p-3 lg:p-4">
-        <div className="space-y-3 lg:space-y-4">
-          {/* Method and URL */}
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-            <Select
-              value={request.method}
-              onValueChange={(method) => updateRequest({ method })}
-            >
-              <SelectTrigger className="w-full sm:w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {HTTP_METHODS.map((method) => (
-                  <SelectItem key={method} value={method}>
-                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getMethodColor(method)}`} />
-                    {method}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="flex-1 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-              <Input
-                placeholder="Enter request URL"
-                value={request.url}
-                onChange={(e) => updateRequest({ url: e.target.value })}
-                className="flex-1 min-w-0"
-              />
-              <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={copyUrl}
-                  className="h-10 w-10 p-0 flex-shrink-0"
-                  title="Copy URL"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={onSendRequest}
-                  disabled={isLoading || !request.url}
-                  className="px-4 lg:px-6 flex-shrink-0"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  {isLoading ? 'Sending...' : 'Send'}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Request Configuration */}
-          <Tabs defaultValue="headers" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-9 lg:h-10">
-              <TabsTrigger value="headers" className="text-xs lg:text-sm">Headers</TabsTrigger>
-              <TabsTrigger value="body" className="text-xs lg:text-sm">Body</TabsTrigger>
-              <TabsTrigger value="params" className="text-xs lg:text-sm">Params</TabsTrigger>
-            </TabsList>
-            <TabsContent value="headers" className="space-y-2 mt-3 lg:mt-4">
-              <HeadersEditor
-                headers={request.headers}
-                onChange={(headers) => updateRequest({ headers })}
-              />
-            </TabsContent>
-            <TabsContent value="body" className="space-y-2 mt-3 lg:mt-4">
-              <RequestEditor
-                body={request.body}
-                bodyType={request.bodyType}
-                rawFormat={request.rawFormat}
-                formData={request.formData}
-                onBodyChange={(body) => updateRequest({ body })}
-                onBodyTypeChange={(bodyType) => updateRequest({ bodyType })}
-                onRawFormatChange={(rawFormat) => updateRequest({ rawFormat })}
-                onFormDataChange={(formData) => updateRequest({ formData })}
-              />
-            </TabsContent>
-            <TabsContent value="params" className="space-y-2 mt-3 lg:mt-4">
-              <div className="text-xs lg:text-sm text-muted-foreground p-4 text-center">
-                URL parameters coming soon...
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </Card>
-
       {/* Response */}
       {response && (
-        <Card className="flex-1 p-3 lg:p-4 min-h-0 overflow-hidden">
+        <div className="glass-card rounded-lg flex-1 min-h-0 overflow-hidden">
           <ResponseViewer response={response} />
-        </Card>
+        </div>
       )}
 
-      {/* Save Dialog */}
       <SaveRequestDialog
         open={showSaveDialog}
         onOpenChange={setShowSaveDialog}
         request={request}
         collections={collections}
         onSaveRequest={(name, collectionId) => {
-          if (hasChanges && request.collectionId) {
-            onSaveAsNew(name, collectionId);
-          } else {
-            onSaveRequest(name, collectionId);
-          }
+          hasChanges && request.collectionId ? onSaveAsNew(name, collectionId) : onSaveRequest(name, collectionId);
           setShowSaveDialog(false);
         }}
-        onCreateCollection={() => {
-          // This would need to be handled by the parent
-          // For now, we'll just close the dialog
-          setShowSaveDialog(false);
-        }}
+        onCreateCollection={onCreateCollection}
       />
     </div>
   );

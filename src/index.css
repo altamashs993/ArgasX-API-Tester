@@ -1,111 +1,312 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* LightPostman Design System - Developer Tool Aesthetic */
+/* ============================================================
+   ARGASX — Production Design System
+   Dark-first, glassmorphism, minimal, modern
+   ============================================================ */
 
 @layer base {
   :root {
-    /* Core Background & Text */
-    --background: 217 19% 12%;
-    --foreground: 0 0% 95%;
+    /* Dark theme (default) */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 93%;
 
-    /* Cards & Surfaces */
-    --card: 217 19% 15%;
-    --card-foreground: 0 0% 95%;
-    --card-hover: 217 19% 18%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 93%;
 
-    /* Interactive Elements */
-    --popover: 217 19% 15%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 93%;
 
-    /* Brand Colors - Blue/Purple Developer Theme */
-    --primary: 217 91% 60%;
+    --primary: 25 100% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 70%;
 
-    /* Secondary Actions */
-    --secondary: 217 19% 20%;
-    --secondary-foreground: 0 0% 85%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 80%;
 
-    /* Muted Elements */
-    --muted: 217 19% 18%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 50%;
 
-    /* Accent - Success Green */
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 93%;
 
-    /* Destructive - Error Red */
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Form Elements */
-    --border: 217 19% 25%;
-    --input: 217 19% 18%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 18%;
+    --input: 0 0% 11%;
+    --ring: 25 100% 50%;
 
-    /* HTTP Method Colors */
-    --method-get: 142 76% 36%;
-    --method-post: 43 96% 56%;
-    --method-put: 217 91% 60%;
-    --method-delete: 0 84% 60%;
-    --method-patch: 262 83% 58%;
+    --radius: 0.5rem;
 
-    /* Status Code Colors */
-    --status-success: 142 76% 36%;
-    --status-client-error: 43 96% 56%;
-    --status-server-error: 0 84% 60%;
-
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--card-hover)));
-
-    /* Shadows */
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.15);
-    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.25);
-
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    /* Design System Enhancements */
-    --radius: 0.75rem;
+    /* HTTP method palette */
+    --get: 142 70% 45%;
+    --post: 43 90% 56%;
+    --put: 217 88% 60%;
+    --delete: 0 72% 56%;
+    --patch: 280 80% 65%;
+    --head: 187 80% 50%;
+    --options: 310 70% 60%;
   }
-}
 
-@layer base {
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+
+    --primary: 25 100% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 9%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 95%;
+    --ring: 25 100% 48%;
+  }
+
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
   }
 
-  /* Mobile touch optimizations */
-  @media (max-width: 768px) {
-    button, [role="button"] {
-      min-height: 44px;
-      min-width: 44px;
-    }
+  ::selection {
+    background: hsl(25 100% 50% / 0.3);
+    color: inherit;
   }
 
-  /* Custom scrollbar for webkit browsers */
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: hsl(0 0% 25%); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(0 0% 35%); }
+  .light ::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); }
+  .light ::-webkit-scrollbar-thumb:hover { background: hsl(0 0% 60%); }
+}
+
+/* ============================================================
+   GLASSMORPHISM COMPONENTS
+   ============================================================ */
+
+@layer components {
+  /* --- Glass Sidebar --- */
+  .glass-sidebar {
+    background: hsl(0 0% 5%);
+    border-right: 1px solid hsl(0 0% 14%);
+  }
+  .light .glass-sidebar {
+    background: hsl(0 0% 98%);
+    border-right: 1px solid hsl(0 0% 88%);
   }
 
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
+  /* --- Glass Card (panels, request config area) --- */
+  .glass-card {
+    background: hsl(0 0% 7% / 0.9);
+    border: 1px solid hsl(0 0% 16%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .light .glass-card {
+    background: hsl(0 0% 100% / 0.9);
+    border: 1px solid hsl(0 0% 88%);
   }
 
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 2px;
+  /* --- Glass Tab bar --- */
+  .glass-tab {
+    background: hsl(0 0% 6%);
+    border-bottom: 1px solid hsl(0 0% 13%);
+  }
+  .light .glass-tab {
+    background: hsl(0 0% 96%);
+    border-bottom: 1px solid hsl(0 0% 88%);
   }
 
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+  /* Active tab indicator */
+  .tab-active-indicator::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: hsl(var(--primary));
+    border-radius: 1px 1px 0 0;
   }
+
+  /* --- Send button (orange gradient) --- */
+  .btn-send {
+    background: hsl(var(--primary));
+    color: white;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
+  .btn-send:hover:not(:disabled) {
+    background: hsl(25 100% 45%);
+    box-shadow: 0 4px 20px hsl(var(--primary) / 0.35);
+    transform: translateY(-1px);
+  }
+  .btn-send:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  .btn-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* --- HTTP Method colors --- */
+  .method-get    { color: hsl(var(--get)); }
+  .method-post   { color: hsl(var(--post)); }
+  .method-put    { color: hsl(var(--put)); }
+  .method-delete { color: hsl(var(--delete)); }
+  .method-patch  { color: hsl(var(--patch)); }
+  .method-head   { color: hsl(var(--head)); }
+  .method-options { color: hsl(var(--options)); }
+
+  /* --- Test result colors --- */
+  .test-pass { color: hsl(142 70% 45%); }
+  .test-fail { color: hsl(0 72% 56%); }
+
+  /* --- Status badge colors --- */
+  .status-2xx { background: hsl(142 60% 25%); color: hsl(142 70% 75%); }
+  .status-3xx { background: hsl(43 70% 25%); color: hsl(43 90% 75%); }
+  .status-4xx { background: hsl(43 60% 25%); color: hsl(43 90% 75%); }
+  .status-5xx { background: hsl(0 60% 25%); color: hsl(0 72% 75%); }
+
+  /* --- Animated loading dot --- */
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .loading-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
+
+  /* --- Smooth hover states --- */
+  .hover-row {
+    transition: background 0.1s ease;
+  }
+  .hover-row:hover {
+    background: hsl(0 0% 100% / 0.04);
+  }
+  .light .hover-row:hover {
+    background: hsl(0 0% 0% / 0.04);
+  }
+
+  /* --- Tooltip-style badge --- */
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid hsl(0 0% 22%);
+    background: hsl(0 0% 11%);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-family: monospace;
+    color: hsl(0 0% 60%);
+  }
+
+  /* --- Drag handle --- */
+  .drag-handle {
+    cursor: ns-resize;
+    border-top: 1px solid hsl(0 0% 13%);
+    background: hsl(0 0% 6%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 8px;
+    opacity: 0.6;
+  }
+  .drag-handle:hover { opacity: 1; }
+
+  /* scrollbar-hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+}
+
+/* ============================================================
+   CODEMIRROR OVERRIDES — seamless dark editor
+   ============================================================ */
+
+.cm-editor {
+  background: transparent !important;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+.cm-editor.cm-focused { outline: none !important; }
+.cm-scroller { overflow: auto; }
+.cm-gutters {
+  background: hsl(0 0% 5%) !important;
+  border-right: 1px solid hsl(0 0% 14%) !important;
+  color: hsl(0 0% 35%) !important;
+}
+.cm-activeLineGutter, .cm-activeLine {
+  background: hsl(0 0% 100% / 0.03) !important;
+}
+.cm-cursor { border-left-color: hsl(var(--primary)) !important; }
+.cm-selectionBackground { background: hsl(25 100% 50% / 0.2) !important; }
+
+/* ============================================================
+   LIGHT THEME — radix/popover portals inherit theme
+   ============================================================ */
+.light .glass-card {
+  box-shadow: 0 1px 4px hsl(0 0% 0% / 0.08), 0 0 0 1px hsl(0 0% 88%);
+}
+.light .glass-tab {
+  background: hsl(0 0% 95%);
+  border-bottom: 1px solid hsl(0 0% 86%);
+}
+.light .btn-send:hover:not(:disabled) {
+  box-shadow: 0 4px 16px hsl(25 100% 50% / 0.3);
+}
+
+
+/* Hide native number input spin buttons */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+input[type=number] {
+  -moz-appearance: textfield !important;
+}
+
+/* Force CodeMirror text wrapping when wrapText class is applied */
+.cm-line-wrap .cm-content {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+}
+.cm-line-wrap .cm-line {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
 }

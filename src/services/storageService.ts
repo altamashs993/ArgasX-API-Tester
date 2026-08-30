@@ -12,21 +12,47 @@ export class StorageService {
   static getCollections(): Collection[] {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((c: any) => ({
+        ...c,
+        id: String(c.id || crypto.randomUUID()),
+        name: typeof c.name === 'object' && c.name !== null ? String(c.name.name || 'Unnamed Collection') : String(c.name || 'Unnamed Collection'),
+        description: typeof c.description === 'object' && c.description !== null ? String(c.description.description || '') : String(c.description || ''),
+        createdAt: c.createdAt || new Date().toISOString(),
+        updatedAt: c.updatedAt || new Date().toISOString()
+      }));
     } catch {
       return [];
     }
   }
 
   static saveCollections(collections: Collection[]): void {
-    localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(collections));
+    const sanitized = collections.map(c => ({
+      ...c,
+      name: typeof c.name === 'object' && c.name !== null ? String((c.name as any).name || 'Unnamed Collection') : String(c.name || 'Unnamed Collection'),
+      description: typeof c.description === 'object' && c.description !== null ? String((c.description as any).description || '') : String(c.description || '')
+    }));
+    localStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(sanitized));
   }
 
-  static createCollection(collection: Omit<Collection, 'id' | 'createdAt' | 'updatedAt'>): Collection {
+  static createCollection(collection: Omit<Collection, 'id' | 'createdAt' | 'updatedAt'> | any): Collection {
     const collections = this.getCollections();
+    const nameStr = typeof collection === 'object' && collection !== null && typeof collection.name === 'object' && collection.name !== null
+      ? String(collection.name.name || 'New Collection')
+      : typeof collection === 'object' && collection !== null && typeof collection.name === 'string'
+      ? collection.name
+      : String(collection || 'New Collection');
+
+    const descStr = typeof collection === 'object' && collection !== null && typeof collection.description === 'string'
+      ? collection.description
+      : '';
+
     const newCollection: Collection = {
-      ...collection,
       id: crypto.randomUUID(),
+      name: nameStr,
+      description: descStr,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -154,6 +180,20 @@ export class StorageService {
 
   static clearHistory(): void {
     localStorage.removeItem(STORAGE_KEYS.HISTORY);
+  }
+
+  static updateHistoryItem(id: string, updates: Partial<RequestHistory>): void {
+    const history = this.getHistory();
+    const index = history.findIndex(h => h.id === id);
+    if (index !== -1) {
+      history[index] = { ...history[index], ...updates };
+      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+    }
+  }
+
+  static deleteHistoryItem(id: string): void {
+    const history = this.getHistory().filter(h => h.id !== id);
+    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
   }
 
   // Import/Export

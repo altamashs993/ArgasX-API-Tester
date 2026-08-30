@@ -1,73 +1,60 @@
-# Welcome to your Lovable project
+﻿# ArgasX API Tester
 
-## Project info
+A powerful, local-first, privacy-focused REST API testing desktop client built with React, TypeScript, Tailwind CSS, and Tauri v2.
 
-**URL**: https://lovable.dev/projects/28f446c2-6163-49ef-bf5a-4190b9d161bd
+![ArgasX API Tester](src-tauri/icons/icon.png)
 
-## How can I edit this code?
+## Key Features
 
-There are several ways of editing your application.
+- ⚡ **Local-First & Offline**: All requests, history, collections, and environments are stored locally in your browser/app local storage. No cloud server required.
+- 🎨 **Minimal & Modern Dark UI**: Glassmorphism aesthetic inspired by Postman with a deep black and grey theme.
+- 🚀 **Multi-Format Support**: Test GET, POST, PUT, DELETE, PATCH, HEAD, and OPTIONS requests with JSON, XML, HTML, and Form-Data payloads.
+- 📁 **Collections & Import/Export**: Organize requests into collections. Fully compatible with Postman Collection v2.1 JSON import and export.
+- 🌐 **Environments & Variables**: Manage environment variables with dynamic `{{variable}}` substitution in URLs, headers, and body payloads.
+- 🧪 **Pre-Request & Test Scripting**: Write sandbox JavaScript pre-request scripts and test assertions with the `pm.*` API (`pm.test`, `pm.expect`, `pm.environment.set`).
+- 🏃 **Collection Runner**: Run entire collections sequentially with custom delay controls, CSV/JSON data-driven iterations, and live execution reporting.
+- 🎯 **Wrap Text & Formatting**: Toggle line wrapping for long JSON/HTML responses and auto-pretty-format response payloads.
 
-**Use Lovable**
+## Downloads & Releases
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/28f446c2-6163-49ef-bf5a-4190b9d161bd) and start prompting.
+Download the latest standalone executable or installer packages from the [Releases](https://github.com/altamashs993/ArgasX-API-Tester/releases) page:
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Standalone Windows Executable**: `argasx-api-tester.exe`
+- **Windows Setup Installer (NSIS)**: `ArgasX API Tester_1.0.0_x64-setup.exe`
+- **Windows MSI Installer**: `ArgasX API Tester_1.0.0_x64_en-US.msi`
 
-**Use your preferred IDE**
+## Building from Source
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js (v18+)
+- Rust (latest stable toolchain)
 
-Follow these steps:
+### Setup & Build
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Clone the repository
+git clone https.github.com/altamashs993/ArgasX-API-Tester.git
+cd "ArgasX API Tester"
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Run in development mode
 npm run dev
+
+# Build Windows desktop release binary
+npx tauri build
 ```
 
-**Edit a file directly in GitHub**
+## Automated Testing
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Run the automated module test suite:
 
-**Use GitHub Codespaces**
+```bash
+npx tsx scripts/test-all-modules.ts
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## License
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/28f446c2-6163-49ef-bf5a-4190b9d161bd) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+MIT License.
