@@ -17,9 +17,9 @@ A powerful, local-first, privacy-focused REST API testing desktop client built w
 
 ## Downloads & Releases
 
-Download the latest standalone executable or installer packages from the [Releases](https://github.com/altamashs993/ArgasX-API-Tester/releases) page:
+Download the latest standalone executable or installer packages from the [Releases](https://github.com/altamashs993/ArgasX-APIToolkit/releases) page:
 
-- **Standalone Windows Executable**: `argasx-api-tester.exe`
+- **Standalone Windows Executable**: `ArgasX-APIToolkit.exe`
 - **Windows Setup Installer (NSIS)**: `ArgasX API Tester_1.0.0_x64-setup.exe`
 - **Windows MSI Installer**: `ArgasX API Tester_1.0.0_x64_en-US.msi`
 
@@ -34,7 +34,7 @@ Download the latest standalone executable or installer packages from the [Releas
 
 ```bash
 # Clone the repository
-git clone https.github.com/altamashs993/ArgasX-API-Tester.git
+git clone https.github.com/altamashs993/ArgasX-APIToolkit.git
 cd "ArgasX API Tester"
 
 # Install dependencies
@@ -58,3 +58,4 @@ npx tsx scripts/test-all-modules.ts
 ## License
 
 MIT License.
+
